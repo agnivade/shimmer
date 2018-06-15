@@ -1,29 +1,48 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 	<meta charset="utf-8">
 	<title>Go wasm</title>
+	<style>
+		#sourceImg {
+			display: block;
+			max-height: 25rem;
+		}
+	</style>
 </head>
-
 <body>
+	<button id="mybtn">click me</button>
+	<input type="file" id="uploader" />
+	<image id="sourceImg" />
+
+
 	<script src="wasm_loader.js"></script>
 	<script>
 		const go = new Go();
 		let mod, inst;
-		WebAssembly.instantiateStreaming(fetch("shimmer.wasm"), go.importObject).then((result) => {
+		console.log("Initializing wasm...");
+		WebAssembly.instantiateStreaming(
+			fetch("shimmer.wasm", {cache: 'no-cache'}), go.importObject).then((result) => {
 			mod = result.module;
 			inst = result.instance;
-			document.getElementById("runButton").disabled = false;
+			console.log("Initialization complete.");
+			run();
 		});
 
 		async function run() {
 			await go.run(inst);
 			inst = await WebAssembly.instantiate(mod, go.importObject); // reset instance
 		}
-	</script>
 
-	<button onClick="run();" id="runButton" disabled>Run</button>
+		document.getElementById('uploader').addEventListener('change', function() {
+			let reader = new FileReader();
+			reader.onload = (ev) => {
+				document.getElementById("sourceImg").src = ev.target.result;
+			};
+
+			reader.readAsDataURL(this.files[0])
+		});
+	</script>
 </body>
 
 </html>
