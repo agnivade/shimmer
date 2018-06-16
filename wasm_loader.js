@@ -353,29 +353,4 @@
 			}
 		}
 	}
-
-	if (isNodeJS) {
-		if (process.argv.length < 3) {
-			process.stderr.write("usage: go_js_wasm_exec [wasm binary] [arguments]\n");
-			process.exit(1);
-		}
-
-		const go = new Go();
-		go.argv = process.argv.slice(2);
-		go.env = process.env;
-		go.exit = process.exit;
-		WebAssembly.instantiate(fs.readFileSync(process.argv[2]), go.importObject).then((result) => {
-			process.on("exit", () => { // Node.js exits if no callback is pending
-				if (!go.exited) {
-					console.error("error: all goroutines asleep and no JavaScript callback pending - deadlock!");
-					process.exit(1);
-				}
-			});
-			return go.run(result.instance);
-		}).catch((err) => {
-			console.error(err);
-			go.exited = true;
-			process.exit(1);
-		});
-	}
 })();

@@ -7,7 +7,6 @@ import (
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
-	"io"
 	"strings"
 	"syscall/js"
 
@@ -20,6 +19,10 @@ const pngPrefix = "data:image/jpeg;base64,"
 
 func main() {
 	var loadImgCb, brightnessCb, contrastCb js.Callback
+
+	var i image.Image
+	var err error
+	var buf bytes.Buffer
 	// TODO: explicitly close callback when done
 	loadImgCb = js.NewCallback(func(args []js.Value) {
 		source := js.Global.
@@ -38,49 +41,48 @@ func main() {
 		}
 
 		reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(source))
-		applyTransformation(reader)
+		i, _, err = image.Decode(reader)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		// TODO: log this in status div
+		fmt.Println("Ready for operations")
+		// TODO: reset brightness and contrast sliders
 	})
 
 	js.Global.Get("document").
 		Call("getElementById", "sourceImg").
 		Call("addEventListener", "load", loadImgCb)
 
-	brightnessCb = js.NewCallback(func(args []js.Value) {
-		fmt.Println(args[0].Get("target").Get("value").Float())
+	brightnessCb = js.NewEventCallback(js.PreventDefault, func(ev js.Value) {
+		b := ev.Get("target").Get("value").Float()
+		res := adjust.Brightness(i, b)
+
+		buf.Reset()
+		enc := imgio.JPEGEncoder(90)
+		err = enc(&buf, res)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		// Updating the image
+		js.Global.Get("document").
+			Call("getElementById", "targetImg").
+			Set("src", jpegPrefix+base64.StdEncoding.EncodeToString(buf.Bytes()))
 	})
 	js.Global.Get("document").
 		Call("getElementById", "brightness").
 		Call("addEventListener", "change", brightnessCb)
 
-	contrastCb = js.NewCallback(func(args []js.Value) {
-		fmt.Println(args[0].Get("target").Get("value").Float())
+	contrastCb = js.NewEventCallback(js.PreventDefault, func(ev js.Value) {
+		c := ev.Get("target").Get("value").Float()
+		fmt.Println(c)
 	})
 	js.Global.Get("document").
-		Call("getElementById", "brightness").
+		Call("getElementById", "contrast").
 		Call("addEventListener", "change", contrastCb)
 
 	// Just waiting indefinitely for now
 	select {}
-}
-
-func applyTransformation(r io.Reader) {
-	i, _, err := image.Decode(r)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	var buf bytes.Buffer
-	res := adjust.Brightness(i, 0.75)
-
-	enc := imgio.JPEGEncoder(90)
-	err = enc(&buf, res)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	// Updating the image
-	js.Global.Get("document").
-		Call("getElementById", "targetImg").
-		Set("src", jpegPrefix+base64.StdEncoding.EncodeToString(buf.Bytes()))
 }
