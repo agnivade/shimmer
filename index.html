@@ -20,6 +20,12 @@
 <body>
 	<div id="status"></div>
 	<input type="file" id="uploader" />
+	<br />
+	<label for="brightness">Brightness</label>
+	<input type="range" min="-1" max="1" value="0" step="0.1" id="brightness">
+	<label for="contrast">Contrast</label>
+	<input type="range" min="-1" max="1" value="0" step="0.1" id="contrast">
+
 	<div class="separator">Results:</div>
 	<div>
 		<image id="sourceImg" class="image" />
@@ -31,14 +37,14 @@
 	<script>
 		const go = new Go();
 		let mod, inst;
-		document.getElementById('status').innerText = "Initializing wasm...";
-		WebAssembly.instantiateStreaming(
-			fetch("shimmer.wasm", {cache: 'no-cache'}), go.importObject).then((result) => {
-			mod = result.module;
-			inst = result.instance;
-			document.getElementById('status').innerText = "Initialization complete.";
-			run();
-		});
+		// document.getElementById('status').innerText = "Initializing wasm...";
+		// WebAssembly.instantiateStreaming(
+		// 	fetch("shimmer.wasm", {cache: 'no-cache'}), go.importObject).then((result) => {
+		// 	mod = result.module;
+		// 	inst = result.instance;
+		// 	document.getElementById('status').innerText = "Initialization complete.";
+		// 	run();
+		// });
 
 		async function run() {
 			await go.run(inst);
@@ -52,6 +58,10 @@
 			};
 
 			reader.readAsDataURL(this.files[0])
+		});
+
+		document.getElementById('brightness').addEventListener('change', function(ev) {
+			console.log(ev.target.value);
 		});
 	</script>
 </body>
