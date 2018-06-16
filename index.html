@@ -7,7 +7,10 @@
 		.image {
 			display: block;
 			max-height: 25rem;
+			width: 49%;
 			float: left;
+			border: 2px solid gray;
+			margin-right: 2px;
 		}
 		.separator {
 			clear: both;
@@ -18,8 +21,10 @@
 	<div id="status"></div>
 	<input type="file" id="uploader" />
 	<div class="separator">Results:</div>
-	<image id="sourceImg" class="image" />
-	<image id="targetImg" class="image" />
+	<div>
+		<image id="sourceImg" class="image" />
+		<image id="targetImg" class="image" />
+	</div>
 
 
 	<script src="wasm_loader.js"></script>
