@@ -19,12 +19,9 @@ const jpegPrefix = "data:image/jpeg;base64,"
 const pngPrefix = "data:image/jpeg;base64,"
 
 func main() {
-	var loadImgCb js.Callback
+	var loadImgCb, brightnessCb, contrastCb js.Callback
 	// TODO: explicitly close callback when done
 	loadImgCb = js.NewCallback(func(args []js.Value) {
-		// this does not show up - investigate
-		// fmt.Println(args[0].Get("target"))
-
 		source := js.Global.
 			Get("document").Call("getElementById", "sourceImg").
 			Get("src").String()
@@ -43,9 +40,24 @@ func main() {
 		reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(source))
 		applyTransformation(reader)
 	})
+
 	js.Global.Get("document").
 		Call("getElementById", "sourceImg").
 		Call("addEventListener", "load", loadImgCb)
+
+	brightnessCb = js.NewCallback(func(args []js.Value) {
+		fmt.Println(args[0].Get("target").Get("value").Float())
+	})
+	js.Global.Get("document").
+		Call("getElementById", "brightness").
+		Call("addEventListener", "change", brightnessCb)
+
+	contrastCb = js.NewCallback(func(args []js.Value) {
+		fmt.Println(args[0].Get("target").Get("value").Float())
+	})
+	js.Global.Get("document").
+		Call("getElementById", "brightness").
+		Call("addEventListener", "change", contrastCb)
 
 	// Just waiting indefinitely for now
 	select {}

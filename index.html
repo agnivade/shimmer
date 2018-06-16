@@ -37,18 +37,17 @@
 	<script>
 		const go = new Go();
 		let mod, inst;
-		// document.getElementById('status').innerText = "Initializing wasm...";
-		// WebAssembly.instantiateStreaming(
-		// 	fetch("shimmer.wasm", {cache: 'no-cache'}), go.importObject).then((result) => {
-		// 	mod = result.module;
-		// 	inst = result.instance;
-		// 	document.getElementById('status').innerText = "Initialization complete.";
-		// 	run();
-		// });
+		document.getElementById('status').innerText = "Initializing wasm...";
+		WebAssembly.instantiateStreaming(
+			fetch("shimmer.wasm", {cache: 'no-cache'}), go.importObject).then((result) => {
+			mod = result.module;
+			inst = result.instance;
+			document.getElementById('status').innerText = "Initialization complete.";
+			run();
+		});
 
 		async function run() {
 			await go.run(inst);
-			inst = await WebAssembly.instantiate(mod, go.importObject); // reset instance
 		}
 
 		document.getElementById('uploader').addEventListener('change', function() {
@@ -60,9 +59,6 @@
 			reader.readAsDataURL(this.files[0])
 		});
 
-		document.getElementById('brightness').addEventListener('change', function(ev) {
-			console.log(ev.target.value);
-		});
 	</script>
 </body>
 
