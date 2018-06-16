@@ -12,14 +12,18 @@ import (
 )
 
 const jpegPrefix = "data:image/jpeg;base64,"
+const pngPrefix = "data:image/jpeg;base64,"
 
 func main() {
-	var cb js.Callback
-	cb = js.NewCallback(func(args []js.Value) {
+	var loadImgCb js.Callback
+	// TODO: explicitly close callback when done
+	loadImgCb = js.NewCallback(func(args []js.Value) {
 		// this does not show up - investigate
 		// fmt.Println(args[0].Get("target"))
 
-		source := js.Global.Get("document").Call("getElementById", "sourceImg").Get("src").String()
+		source := js.Global.
+			Get("document").Call("getElementById", "sourceImg").
+			Get("src").String()
 		if strings.HasPrefix(source, jpegPrefix) {
 			source = strings.TrimPrefix(source, jpegPrefix)
 		} else {
@@ -28,9 +32,10 @@ func main() {
 		}
 		reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(source))
 		convertToPNG(reader)
-
 	})
-	js.Global.Get("document").Call("getElementById", "sourceImg").Call("addEventListener", "load", cb)
+	js.Global.Get("document").
+		Call("getElementById", "sourceImg").
+		Call("addEventListener", "load", loadImgCb)
 	fmt.Println("hello wasm")
 
 	// Just waiting indefinitely for now
@@ -50,5 +55,8 @@ func convertToPNG(r io.Reader) {
 		return
 	}
 
-	fmt.Println(base64.StdEncoding.EncodeToString(buf.Bytes()))
+	// Updating the image
+	js.Global.Get("document").
+		Call("getElementById", "targetImg").
+		Set("src", pngPrefix+base64.StdEncoding.EncodeToString(buf.Bytes()))
 }

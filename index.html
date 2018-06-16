@@ -4,28 +4,34 @@
 	<meta charset="utf-8">
 	<title>Go wasm</title>
 	<style>
-		#sourceImg {
+		.image {
 			display: block;
 			max-height: 25rem;
+			float: left;
+		}
+		.separator {
+			clear: both;
 		}
 	</style>
 </head>
 <body>
-	<button id="mybtn">click me</button>
+	<div id="status"></div>
 	<input type="file" id="uploader" />
-	<image id="sourceImg" />
+	<div class="separator">Results:</div>
+	<image id="sourceImg" class="image" />
+	<image id="targetImg" class="image" />
 
 
 	<script src="wasm_loader.js"></script>
 	<script>
 		const go = new Go();
 		let mod, inst;
-		console.log("Initializing wasm...");
+		document.getElementById('status').innerText = "Initializing wasm...";
 		WebAssembly.instantiateStreaming(
 			fetch("shimmer.wasm", {cache: 'no-cache'}), go.importObject).then((result) => {
 			mod = result.module;
 			inst = result.instance;
-			console.log("Initialization complete.");
+			document.getElementById('status').innerText = "Initialization complete.";
 			run();
 		});
 
