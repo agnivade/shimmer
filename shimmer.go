@@ -15,9 +15,6 @@ type Shimmer struct {
 	sourceImg                             image.Image
 
 	done chan struct{}
-	// TODO: store these things also
-	// strings.NewReader
-	// JPEGEncoder
 }
 
 // New returns a new instance of shimmer
