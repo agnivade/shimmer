@@ -11,7 +11,7 @@ import (
 
 const (
 	jpegPrefix = "data:image/jpeg;base64,"
-	pngPrefix  = "data:image/jpeg;base64,"
+	pngPrefix  = "data:image/png;base64,"
 )
 
 func (s *Shimmer) setupOnImgLoadCb() {
