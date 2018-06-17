@@ -1,88 +1,73 @@
-package main
+// +build js,wasm
+
+package shimmer
 
 import (
 	"bytes"
-	"encoding/base64"
-	"fmt"
 	"image"
-	_ "image/jpeg"
-	_ "image/png"
-	"strings"
 	"syscall/js"
-
-	"github.com/anthonynsimon/bild/adjust"
-	"github.com/anthonynsimon/bild/imgio"
 )
 
-const jpegPrefix = "data:image/jpeg;base64,"
-const pngPrefix = "data:image/jpeg;base64,"
+type Shimmer struct {
+	buf                                   bytes.Buffer
+	onImgLoadCb, brightnessCb, contrastCb js.Callback
+	shutdownCb                            js.Callback
+	sourceImg                             image.Image
 
-func main() {
-	var loadImgCb, brightnessCb, contrastCb js.Callback
+	done chan struct{}
+	// TODO: store these things also
+	// strings.NewReader
+	// JPEGEncoder
+}
 
-	var i image.Image
-	var err error
-	var buf bytes.Buffer
-	// TODO: explicitly close callback when done
-	loadImgCb = js.NewCallback(func(args []js.Value) {
-		source := js.Global.
-			Get("document").Call("getElementById", "sourceImg").
-			Get("src").String()
+// New returns a new instance of shimmer
+func New() *Shimmer {
+	return &Shimmer{
+		done: make(chan struct{}),
+	}
+}
 
-		switch {
-		case strings.HasPrefix(source, jpegPrefix):
-			source = strings.TrimPrefix(source, jpegPrefix)
-		case strings.HasPrefix(source, pngPrefix):
-			source = strings.TrimPrefix(source, pngPrefix)
-		default:
-			// TODO: log this in the status div
-			fmt.Println("unrecognized image format")
-			return
-		}
-
-		reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(source))
-		i, _, err = image.Decode(reader)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		// TODO: log this in status div
-		fmt.Println("Ready for operations")
-		// TODO: reset brightness and contrast sliders
-	})
-
+// Start sets up all the callbacks and waits for the close signal
+// to be sent from the browser.
+func (s *Shimmer) Start() {
+	// Setup callbacks
+	s.setupOnImgLoadCb()
 	js.Global.Get("document").
 		Call("getElementById", "sourceImg").
-		Call("addEventListener", "load", loadImgCb)
+		Call("addEventListener", "load", s.onImgLoadCb)
 
-	brightnessCb = js.NewEventCallback(js.PreventDefault, func(ev js.Value) {
-		b := ev.Get("target").Get("value").Float()
-		res := adjust.Brightness(i, b)
-
-		buf.Reset()
-		enc := imgio.JPEGEncoder(90)
-		err = enc(&buf, res)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		// Updating the image
-		js.Global.Get("document").
-			Call("getElementById", "targetImg").
-			Set("src", jpegPrefix+base64.StdEncoding.EncodeToString(buf.Bytes()))
-	})
+	s.setupBrightnessCb()
 	js.Global.Get("document").
 		Call("getElementById", "brightness").
-		Call("addEventListener", "change", brightnessCb)
+		Call("addEventListener", "change", s.brightnessCb)
 
-	contrastCb = js.NewEventCallback(js.PreventDefault, func(ev js.Value) {
-		c := ev.Get("target").Get("value").Float()
-		fmt.Println(c)
-	})
+	s.setupContrastCb()
 	js.Global.Get("document").
 		Call("getElementById", "contrast").
-		Call("addEventListener", "change", contrastCb)
+		Call("addEventListener", "change", s.contrastCb)
 
-	// Just waiting indefinitely for now
-	select {}
+	s.setupShutdownCb()
+	js.Global.Get("document").
+		Call("getElementById", "close").
+		Call("addEventListener", "click", s.shutdownCb)
+
+	<-s.done
+	s.log("Shutting down app")
+	s.onImgLoadCb.Close()
+	s.brightnessCb.Close()
+	s.contrastCb.Close()
+	s.shutdownCb.Close()
+}
+
+// utility function to log a msg to the UI from inside a callback
+func (s *Shimmer) log(msg string) {
+	js.Global.Get("document").
+		Call("getElementById", "status").
+		Set("innerText", msg)
+}
+
+func (s *Shimmer) setupShutdownCb() {
+	s.shutdownCb = js.NewEventCallback(js.PreventDefault, func(ev js.Value) {
+		s.done <- struct{}{}
+	})
 }
