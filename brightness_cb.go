@@ -22,7 +22,6 @@ func (s *Shimmer) setupBrightnessCb() {
 		start := time.Now()
 		res := adjust.Brightness(s.sourceImg, delta)
 
-		s.buf.Reset()
 		enc := imgio.JPEGEncoder(90)
 		err := enc(&s.buf, res)
 		if err != nil {
@@ -34,5 +33,6 @@ func (s *Shimmer) setupBrightnessCb() {
 			Call("getElementById", "targetImg").
 			Set("src", jpegPrefix+base64.StdEncoding.EncodeToString(s.buf.Bytes()))
 		fmt.Println("time taken for brightness:", time.Now().Sub(start))
+		s.buf.Reset()
 	})
 }

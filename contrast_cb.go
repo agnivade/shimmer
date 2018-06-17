@@ -22,7 +22,6 @@ func (s *Shimmer) setupContrastCb() {
 		start := time.Now()
 		res := adjust.Contrast(s.sourceImg, delta)
 
-		s.buf.Reset()
 		enc := imgio.JPEGEncoder(90)
 		err := enc(&s.buf, res)
 		if err != nil {
@@ -34,5 +33,6 @@ func (s *Shimmer) setupContrastCb() {
 			Call("getElementById", "targetImg").
 			Set("src", jpegPrefix+base64.StdEncoding.EncodeToString(s.buf.Bytes()))
 		fmt.Println("time taken for contrast:", time.Now().Sub(start))
+		s.buf.Reset()
 	})
 }
