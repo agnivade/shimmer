@@ -35,43 +35,43 @@ func New() *Shimmer {
 func (s *Shimmer) Start() {
 	// Setup callbacks
 	s.setupOnImgLoadCb()
-	js.Global.Get("document").
+	js.Global().Get("document").
 		Call("getElementById", "sourceImg").
 		Call("addEventListener", "load", s.onImgLoadCb)
 
 	s.setupBrightnessCb()
-	js.Global.Get("document").
+	js.Global().Get("document").
 		Call("getElementById", "brightness").
 		Call("addEventListener", "change", s.brightnessCb)
 
 	s.setupContrastCb()
-	js.Global.Get("document").
+	js.Global().Get("document").
 		Call("getElementById", "contrast").
 		Call("addEventListener", "change", s.contrastCb)
 
 	s.setupHueCb()
-	js.Global.Get("document").
+	js.Global().Get("document").
 		Call("getElementById", "hue").
 		Call("addEventListener", "change", s.hueCb)
 
 	s.setupSatCb()
-	js.Global.Get("document").
+	js.Global().Get("document").
 		Call("getElementById", "sat").
 		Call("addEventListener", "change", s.satCb)
 
 	s.setupShutdownCb()
-	js.Global.Get("document").
+	js.Global().Get("document").
 		Call("getElementById", "close").
 		Call("addEventListener", "click", s.shutdownCb)
 
 	<-s.done
 	s.log("Shutting down app")
-	s.onImgLoadCb.Close()
-	s.brightnessCb.Close()
-	s.contrastCb.Close()
-	s.hueCb.Close()
-	s.satCb.Close()
-	s.shutdownCb.Close()
+	s.onImgLoadCb.Release()
+	s.brightnessCb.Release()
+	s.contrastCb.Release()
+	s.hueCb.Release()
+	s.satCb.Release()
+	s.shutdownCb.Release()
 }
 
 // updateImage writes the image to a byte buffer and then converts it to base64.
@@ -84,7 +84,7 @@ func (s *Shimmer) updateImage(img *image.RGBA, start time.Time) {
 		return
 	}
 	// Setting the src property
-	js.Global.Get("document").
+	js.Global().Get("document").
 		Call("getElementById", "targetImg").
 		Set("src", jpegPrefix+base64.StdEncoding.EncodeToString(s.buf.Bytes()))
 	fmt.Println("time taken:", time.Now().Sub(start))
@@ -93,7 +93,7 @@ func (s *Shimmer) updateImage(img *image.RGBA, start time.Time) {
 
 // utility function to log a msg to the UI from inside a callback
 func (s *Shimmer) log(msg string) {
-	js.Global.Get("document").
+	js.Global().Get("document").
 		Call("getElementById", "status").
 		Set("innerText", msg)
 }

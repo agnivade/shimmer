@@ -15,7 +15,7 @@ func (s *Shimmer) setupBrightnessCb() {
 		if s.sourceImg == nil {
 			return
 		}
-		delta := ev.Get("target").Get("value").Float()
+		delta := ev.Get("target").Get("valueAsNumber").Float()
 		start := time.Now()
 		res := adjust.Brightness(s.sourceImg, delta)
 		s.updateImage(res, start)
@@ -28,7 +28,7 @@ func (s *Shimmer) setupContrastCb() {
 		if s.sourceImg == nil {
 			return
 		}
-		delta := ev.Get("target").Get("value").Float()
+		delta := ev.Get("target").Get("valueAsNumber").Float()
 		start := time.Now()
 		res := adjust.Contrast(s.sourceImg, delta)
 		s.updateImage(res, start)
@@ -41,7 +41,7 @@ func (s *Shimmer) setupHueCb() {
 		if s.sourceImg == nil {
 			return
 		}
-		delta := ev.Get("target").Get("value").Int()
+		delta := ev.Get("target").Get("valueAsNumber").Int()
 		start := time.Now()
 		res := adjust.Hue(s.sourceImg, delta)
 		s.updateImage(res, start)
@@ -54,7 +54,7 @@ func (s *Shimmer) setupSatCb() {
 		if s.sourceImg == nil {
 			return
 		}
-		delta := ev.Get("target").Get("value").Float()
+		delta := ev.Get("target").Get("valueAsNumber").Float()
 		start := time.Now()
 		res := adjust.Saturation(s.sourceImg, delta)
 		s.updateImage(res, start)

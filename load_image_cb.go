@@ -16,7 +16,7 @@ const (
 
 func (s *Shimmer) setupOnImgLoadCb() {
 	s.onImgLoadCb = js.NewCallback(func(args []js.Value) {
-		source := js.Global.
+		source := js.Global().
 			Get("document").Call("getElementById", "sourceImg").
 			Get("src").String()
 
@@ -40,11 +40,11 @@ func (s *Shimmer) setupOnImgLoadCb() {
 		s.log("Ready for operations")
 
 		// reset brightness and contrast sliders
-		js.Global.Get("document").
+		js.Global().Get("document").
 			Call("getElementById", "brightness").
 			Set("value", 0)
 
-		js.Global.Get("document").
+		js.Global().Get("document").
 			Call("getElementById", "contrast").
 			Set("value", 0)
 	})
