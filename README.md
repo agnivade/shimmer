@@ -16,6 +16,7 @@ Just a demo project done on a weekend to play with images inside the browser usi
 
 ### Benchmarks
 
+```
 name         time/op
 AdjustImage   249ms ± 4%
 
@@ -24,4 +25,4 @@ AdjustImage  2.44MB ± 0%
 
 name         allocs/op
 AdjustImage    62.0 ± 0%
-
+```
