@@ -3,11 +3,33 @@ package shimmer
 import (
 	"bytes"
 	"encoding/base64"
+	"strings"
+	"syscall/js"
 	"testing"
 
 	"github.com/anthonynsimon/bild/adjust"
 	"github.com/anthonynsimon/bild/imgio"
 )
+
+func TestSimple(t *testing.T) {
+	sh := New()
+	if sh.done == nil {
+		t.Errorf("done chan isn't initialized")
+	}
+}
+
+func TestDOM(t *testing.T) {
+	doc := js.Global().Get("document")
+	elem := doc.Call("createElement", "div")
+	inputString := "hello world"
+	elem.Set("innerText", inputString)
+	out := elem.Get("innerText")
+
+	// need Contains because a "\n" gets appended in the output
+	if !strings.Contains(out.String(), inputString) {
+		t.Errorf("unexpected output string. Expected %q to contain %q", out.String(), inputString)
+	}
+}
 
 func BenchmarkAdjustImage(b *testing.B) {
 	img, err := imgio.Open("testdata/dragon.jpg")
