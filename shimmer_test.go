@@ -35,6 +35,7 @@ func BenchmarkAdjustImage(b *testing.B) {
 	img, err := imgio.Open("testdata/dragon.jpg")
 	if err != nil {
 		b.Error(err)
+		return
 	}
 	// var buf strings.Builder
 	var buf bytes.Buffer
@@ -47,6 +48,7 @@ func BenchmarkAdjustImage(b *testing.B) {
 		err = enc(&buf, img2)
 		if err != nil {
 			b.Error(err)
+			return
 		}
 		// b64Enc.Close()
 		sink = base64.StdEncoding.EncodeToString(buf.Bytes())
