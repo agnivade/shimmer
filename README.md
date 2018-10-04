@@ -6,12 +6,11 @@ Image transformation in wasm using Go.
 
 ![screenshot](screenshot.png)
 
-Just a demo project done on a weekend to play with images inside the browser using WASM. Use the Go compiler at tip. Performance lag is noticeable for images over 100KB.
+Just a demo project done on a weekend to play with images inside the browser using WASM. Performance lag is noticeable for images over 100KB.
 
 ### Setup
 
-- Edit the Makefile to point to your tip compiler.
-- Run `make`
+- Run `make build-prod`
 - Serve the files using any HTTP server. (Note that .wasm files need to be served with `application/wasm` mime type. So the server must be capable of doing that.)
 
 ### Benchmarks
