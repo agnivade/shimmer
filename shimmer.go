@@ -5,7 +5,6 @@ package shimmer
 import (
 	"bytes"
 	"encoding/base64"
-	"fmt"
 	"image"
 	"syscall/js"
 	"time"
@@ -20,13 +19,15 @@ type Shimmer struct {
 	hueCb, satCb             js.Callback
 	sourceImg                image.Image
 
-	done chan struct{}
+	console js.Value
+	done    chan struct{}
 }
 
 // New returns a new instance of shimmer
 func New() *Shimmer {
 	return &Shimmer{
-		done: make(chan struct{}),
+		console: js.Global().Get("console"),
+		done:    make(chan struct{}),
 	}
 }
 
@@ -87,7 +88,7 @@ func (s *Shimmer) updateImage(img *image.RGBA, start time.Time) {
 	js.Global().Get("document").
 		Call("getElementById", "targetImg").
 		Set("src", jpegPrefix+base64.StdEncoding.EncodeToString(s.buf.Bytes()))
-	fmt.Println("time taken:", time.Now().Sub(start))
+	s.console.Call("log", "time taken:", time.Now().Sub(start).String())
 	s.buf.Reset()
 }
 
