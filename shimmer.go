@@ -13,11 +13,12 @@ import (
 )
 
 type Shimmer struct {
-	buf                      bytes.Buffer
-	onImgLoadCb, shutdownCb  js.Callback
-	brightnessCb, contrastCb js.Callback
-	hueCb, satCb             js.Callback
-	sourceImg                image.Image
+	buf                                bytes.Buffer
+	buf2                               []uint8
+	onImgLoadCb, shutdownCb, initMemCb js.Callback
+	brightnessCb, contrastCb           js.Callback
+	hueCb, satCb                       js.Callback
+	sourceImg                          image.Image
 
 	console js.Value
 	done    chan struct{}
@@ -35,10 +36,11 @@ func New() *Shimmer {
 // to be sent from the browser.
 func (s *Shimmer) Start() {
 	// Setup callbacks
+	s.setupInitMemCb()
+	js.Global().Set("initMem", s.initMemCb)
+
 	s.setupOnImgLoadCb()
-	js.Global().Get("document").
-		Call("getElementById", "sourceImg").
-		Call("addEventListener", "load", s.onImgLoadCb)
+	js.Global().Set("loadImage", s.onImgLoadCb)
 
 	s.setupBrightnessCb()
 	js.Global().Get("document").

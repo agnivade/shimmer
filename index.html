@@ -41,12 +41,15 @@
 	<script src="wasm_loader.js"></script>
 	<script>
 		const go = new Go();
-		let mod, inst;
+		// memoryBytes is an Uint8Array pointing to the webassembly linear memory.
+    let memoryBytes;
+		let mod, inst, bytes;
 		document.getElementById('status').innerText = "Initializing wasm...";
 		WebAssembly.instantiateStreaming(
 			fetch("shimmer.wasm", {cache: 'no-cache'}), go.importObject).then((result) => {
 			mod = result.module;
 			inst = result.instance;
+      memoryBytes = new Uint8Array(inst.exports.mem.buffer)
 			document.getElementById('status').innerText = "Initialization complete.";
 			run();
 		});
@@ -55,13 +58,22 @@
 			await go.run(inst);
 		}
 
+		// gotMem sets the webassembly linear memory with the image buffer result
+		// at the slice header pointer passed from Go.
+		function gotMem(pointer) {
+      memoryBytes.set(bytes, pointer);
+      // Now the image can be loaded from the slice.
+      loadImage();
+    }
+
 		document.getElementById('uploader').addEventListener('change', function() {
 			let reader = new FileReader();
 			reader.onload = (ev) => {
-				document.getElementById("sourceImg").src = ev.target.result;
+				bytes = new Uint8Array(ev.target.result);
+				initMem(bytes.length);
+				// document.getElementById("sourceImg").src = ev.target.result;
 			};
-
-			reader.readAsDataURL(this.files[0])
+			reader.readAsArrayBuffer(this.files[0]);
 		});
 	</script>
 </body>
