@@ -3,10 +3,11 @@
 package shimmer
 
 import (
-	"encoding/base64"
+	"bytes"
 	"image"
-	"strings"
+	"reflect"
 	"syscall/js"
+	"unsafe"
 )
 
 const (
@@ -16,21 +17,7 @@ const (
 
 func (s *Shimmer) setupOnImgLoadCb() {
 	s.onImgLoadCb = js.NewCallback(func(args []js.Value) {
-		source := js.Global().
-			Get("document").Call("getElementById", "sourceImg").
-			Get("src").String()
-
-		switch {
-		case strings.HasPrefix(source, jpegPrefix):
-			source = strings.TrimPrefix(source, jpegPrefix)
-		case strings.HasPrefix(source, pngPrefix):
-			source = strings.TrimPrefix(source, pngPrefix)
-		default:
-			s.log("unrecognized image format")
-			return
-		}
-
-		reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(source))
+		reader := bytes.NewReader(s.buf2)
 		var err error
 		s.sourceImg, _, err = image.Decode(reader)
 		if err != nil {
@@ -47,5 +34,20 @@ func (s *Shimmer) setupOnImgLoadCb() {
 		js.Global().Get("document").
 			Call("getElementById", "contrast").
 			Set("value", 0)
+	})
+}
+
+func (s *Shimmer) setupInitMemCb() {
+	// The length of the image array buffer is passed.
+	// Then the buf slice is initialized to that length.
+	// And a pointer to that slice is passed back to the browser.
+	s.initMemCb = js.NewCallback(func(i []js.Value) {
+		length := i[0].Int()
+		s.console.Call("log", "length:", length)
+		s.buf2 = make([]uint8, length)
+		hdr := (*reflect.SliceHeader)(unsafe.Pointer(&s.buf2))
+		ptr := uintptr(unsafe.Pointer(hdr.Data))
+		s.console.Call("log", "ptr:", ptr)
+		js.Global().Call("gotMem", ptr)
 	})
 }

@@ -4,29 +4,32 @@ package shimmer
 
 import (
 	"bytes"
-	"encoding/base64"
-	"fmt"
 	"image"
+	"reflect"
 	"syscall/js"
 	"time"
+	"unsafe"
 
 	"github.com/anthonynsimon/bild/imgio"
 )
 
 type Shimmer struct {
-	buf                      bytes.Buffer
-	onImgLoadCb, shutdownCb  js.Callback
-	brightnessCb, contrastCb js.Callback
-	hueCb, satCb             js.Callback
-	sourceImg                image.Image
+	buf                                bytes.Buffer
+	buf2                               []uint8
+	onImgLoadCb, shutdownCb, initMemCb js.Callback
+	brightnessCb, contrastCb           js.Callback
+	hueCb, satCb                       js.Callback
+	sourceImg                          image.Image
 
-	done chan struct{}
+	console js.Value
+	done    chan struct{}
 }
 
 // New returns a new instance of shimmer
 func New() *Shimmer {
 	return &Shimmer{
-		done: make(chan struct{}),
+		console: js.Global().Get("console"),
+		done:    make(chan struct{}),
 	}
 }
 
@@ -34,10 +37,11 @@ func New() *Shimmer {
 // to be sent from the browser.
 func (s *Shimmer) Start() {
 	// Setup callbacks
+	s.setupInitMemCb()
+	js.Global().Set("initMem", s.initMemCb)
+
 	s.setupOnImgLoadCb()
-	js.Global().Get("document").
-		Call("getElementById", "sourceImg").
-		Call("addEventListener", "load", s.onImgLoadCb)
+	js.Global().Set("loadImage", s.onImgLoadCb)
 
 	s.setupBrightnessCb()
 	js.Global().Get("document").
@@ -83,11 +87,16 @@ func (s *Shimmer) updateImage(img *image.RGBA, start time.Time) {
 		s.log(err.Error())
 		return
 	}
+
+	out := s.buf.Bytes()
+	hdr := (*reflect.SliceHeader)(unsafe.Pointer(&out))
+	ptr := uintptr(unsafe.Pointer(hdr.Data))
+	js.Global().Call("displayImage", ptr, len(out))
 	// Setting the src property
-	js.Global().Get("document").
-		Call("getElementById", "targetImg").
-		Set("src", jpegPrefix+base64.StdEncoding.EncodeToString(s.buf.Bytes()))
-	fmt.Println("time taken:", time.Now().Sub(start))
+	// js.Global().Get("document").
+	// 	Call("getElementById", "targetImg").
+	// 	Set("src", jpegPrefix+base64.StdEncoding.EncodeToString(s.buf.Bytes()))
+	s.console.Call("log", "time taken:", time.Now().Sub(start).String())
 	s.buf.Reset()
 }
 
