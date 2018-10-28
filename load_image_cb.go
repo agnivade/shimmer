@@ -10,11 +10,6 @@ import (
 	"unsafe"
 )
 
-const (
-	jpegPrefix = "data:image/jpeg;base64,"
-	pngPrefix  = "data:image/png;base64,"
-)
-
 func (s *Shimmer) setupOnImgLoadCb() {
 	s.onImgLoadCb = js.NewCallback(func(args []js.Value) {
 		reader := bytes.NewReader(s.inBuf)
