@@ -68,7 +68,7 @@
 		}
 
 		// displayImage takes the pointer to the target image in the wasm linear memory
-		// and its length. Converts to base64 and populates the target image src.
+		// and its length. Gets the resulting byte slice and creates an image blob.
 		function displayImage(pointer, length) {
 			let resultBytes = memoryBytes.slice(pointer, pointer + length);
 			let blob = new Blob([resultBytes], {'type': imageType});
