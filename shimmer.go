@@ -4,10 +4,11 @@ package shimmer
 
 import (
 	"bytes"
-	"encoding/base64"
 	"image"
+	"reflect"
 	"syscall/js"
 	"time"
+	"unsafe"
 
 	"github.com/anthonynsimon/bild/imgio"
 )
@@ -86,10 +87,15 @@ func (s *Shimmer) updateImage(img *image.RGBA, start time.Time) {
 		s.log(err.Error())
 		return
 	}
+
+	out := s.buf.Bytes()
+	hdr := (*reflect.SliceHeader)(unsafe.Pointer(&out))
+	ptr := uintptr(unsafe.Pointer(hdr.Data))
+	js.Global().Call("displayImage", ptr, len(out))
 	// Setting the src property
-	js.Global().Get("document").
-		Call("getElementById", "targetImg").
-		Set("src", jpegPrefix+base64.StdEncoding.EncodeToString(s.buf.Bytes()))
+	// js.Global().Get("document").
+	// 	Call("getElementById", "targetImg").
+	// 	Set("src", jpegPrefix+base64.StdEncoding.EncodeToString(s.buf.Bytes()))
 	s.console.Call("log", "time taken:", time.Now().Sub(start).String())
 	s.buf.Reset()
 }
