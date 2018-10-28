@@ -14,8 +14,8 @@ import (
 )
 
 type Shimmer struct {
-	buf                                bytes.Buffer
-	buf2                               []uint8
+	inBuf                              []uint8
+	outBuf                             bytes.Buffer
 	onImgLoadCb, shutdownCb, initMemCb js.Callback
 	brightnessCb, contrastCb           js.Callback
 	hueCb, satCb                       js.Callback
@@ -82,22 +82,18 @@ func (s *Shimmer) Start() {
 // Then it sets the value to the src attribute of the target image.
 func (s *Shimmer) updateImage(img *image.RGBA, start time.Time) {
 	enc := imgio.JPEGEncoder(90)
-	err := enc(&s.buf, img)
+	err := enc(&s.outBuf, img)
 	if err != nil {
 		s.log(err.Error())
 		return
 	}
 
-	out := s.buf.Bytes()
+	out := s.outBuf.Bytes()
 	hdr := (*reflect.SliceHeader)(unsafe.Pointer(&out))
 	ptr := uintptr(unsafe.Pointer(hdr.Data))
 	js.Global().Call("displayImage", ptr, len(out))
-	// Setting the src property
-	// js.Global().Get("document").
-	// 	Call("getElementById", "targetImg").
-	// 	Set("src", jpegPrefix+base64.StdEncoding.EncodeToString(s.buf.Bytes()))
 	s.console.Call("log", "time taken:", time.Now().Sub(start).String())
-	s.buf.Reset()
+	s.outBuf.Reset()
 }
 
 // utility function to log a msg to the UI from inside a callback

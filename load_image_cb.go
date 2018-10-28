@@ -17,7 +17,7 @@ const (
 
 func (s *Shimmer) setupOnImgLoadCb() {
 	s.onImgLoadCb = js.NewCallback(func(args []js.Value) {
-		reader := bytes.NewReader(s.buf2)
+		reader := bytes.NewReader(s.inBuf)
 		var err error
 		s.sourceImg, _, err = image.Decode(reader)
 		if err != nil {
@@ -44,8 +44,8 @@ func (s *Shimmer) setupInitMemCb() {
 	s.initMemCb = js.NewCallback(func(i []js.Value) {
 		length := i[0].Int()
 		s.console.Call("log", "length:", length)
-		s.buf2 = make([]uint8, length)
-		hdr := (*reflect.SliceHeader)(unsafe.Pointer(&s.buf2))
+		s.inBuf = make([]uint8, length)
+		hdr := (*reflect.SliceHeader)(unsafe.Pointer(&s.inBuf))
 		ptr := uintptr(unsafe.Pointer(hdr.Data))
 		s.console.Call("log", "ptr:", ptr)
 		js.Global().Call("gotMem", ptr)
