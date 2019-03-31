@@ -10,53 +10,61 @@ import (
 )
 
 func (s *Shimmer) setupBrightnessCb() {
-	s.brightnessCb = js.NewEventCallback(js.PreventDefault, func(ev js.Value) {
+	s.brightnessCb = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		// quick return if no source image is yet uploaded
 		if s.sourceImg == nil {
-			return
+			return nil
 		}
-		delta := ev.Get("target").Get("valueAsNumber").Float()
+		delta := args[0].Get("target").Get("valueAsNumber").Float()
 		start := time.Now()
 		res := adjust.Brightness(s.sourceImg, delta)
 		s.updateImage(res, start)
+		args[0].Call("preventDefault")
+		return nil
 	})
 }
 
 func (s *Shimmer) setupContrastCb() {
-	s.contrastCb = js.NewEventCallback(js.PreventDefault, func(ev js.Value) {
+	s.contrastCb = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		// quick return if no source image is yet uploaded
 		if s.sourceImg == nil {
-			return
+			return nil
 		}
-		delta := ev.Get("target").Get("valueAsNumber").Float()
+		delta := args[0].Get("target").Get("valueAsNumber").Float()
 		start := time.Now()
 		res := adjust.Contrast(s.sourceImg, delta)
 		s.updateImage(res, start)
+		args[0].Call("preventDefault")
+		return nil
 	})
 }
 
 func (s *Shimmer) setupHueCb() {
-	s.hueCb = js.NewEventCallback(js.PreventDefault, func(ev js.Value) {
+	s.hueCb = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		// quick return if no source image is yet uploaded
 		if s.sourceImg == nil {
-			return
+			return nil
 		}
-		delta := ev.Get("target").Get("valueAsNumber").Int()
+		delta := args[0].Get("target").Get("valueAsNumber").Int()
 		start := time.Now()
 		res := adjust.Hue(s.sourceImg, delta)
 		s.updateImage(res, start)
+		args[0].Call("preventDefault")
+		return nil
 	})
 }
 
 func (s *Shimmer) setupSatCb() {
-	s.satCb = js.NewEventCallback(js.PreventDefault, func(ev js.Value) {
+	s.satCb = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		// quick return if no source image is yet uploaded
 		if s.sourceImg == nil {
-			return
+			return nil
 		}
-		delta := ev.Get("target").Get("valueAsNumber").Float()
+		delta := args[0].Get("target").Get("valueAsNumber").Float()
 		start := time.Now()
 		res := adjust.Saturation(s.sourceImg, delta)
 		s.updateImage(res, start)
+		args[0].Call("preventDefault")
+		return nil
 	})
 }

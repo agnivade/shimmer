@@ -16,9 +16,9 @@ import (
 type Shimmer struct {
 	inBuf                              []uint8
 	outBuf                             bytes.Buffer
-	onImgLoadCb, shutdownCb, initMemCb js.Callback
-	brightnessCb, contrastCb           js.Callback
-	hueCb, satCb                       js.Callback
+	onImgLoadCb, shutdownCb, initMemCb js.Func
+	brightnessCb, contrastCb           js.Func
+	hueCb, satCb                       js.Func
 	sourceImg                          image.Image
 
 	console js.Value
@@ -104,7 +104,8 @@ func (s *Shimmer) log(msg string) {
 }
 
 func (s *Shimmer) setupShutdownCb() {
-	s.shutdownCb = js.NewEventCallback(js.PreventDefault, func(ev js.Value) {
+	s.shutdownCb = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		s.done <- struct{}{}
+		return nil
 	})
 }
