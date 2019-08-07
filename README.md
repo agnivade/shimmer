@@ -6,6 +6,8 @@ Image transformation in wasm using Go.
 
 ![screenshot](screenshot.png)
 
+**LIVE DEMO** at https://agniva.me/shimmer/
+
 Just a demo project done on a weekend to play with images inside the browser using WASM. Performance lag is noticeable for images over 100KB.
 
 ### Setup
