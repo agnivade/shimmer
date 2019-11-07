@@ -5,21 +5,20 @@ package shimmer
 import (
 	"bytes"
 	"image"
-	"reflect"
+	"strconv"
 	"syscall/js"
 	"time"
-	"unsafe"
 
 	"github.com/anthonynsimon/bild/imgio"
 )
 
 type Shimmer struct {
-	inBuf                              []uint8
-	outBuf                             bytes.Buffer
-	onImgLoadCb, shutdownCb, initMemCb js.Func
-	brightnessCb, contrastCb           js.Func
-	hueCb, satCb                       js.Func
-	sourceImg                          image.Image
+	inBuf                    []uint8
+	outBuf                   bytes.Buffer
+	onImgLoadCb, shutdownCb  js.Func
+	brightnessCb, contrastCb js.Func
+	hueCb, satCb             js.Func
+	sourceImg                image.Image
 
 	console js.Value
 	done    chan struct{}
@@ -37,9 +36,6 @@ func New() *Shimmer {
 // to be sent from the browser.
 func (s *Shimmer) Start() {
 	// Setup callbacks
-	s.setupInitMemCb()
-	js.Global().Set("initMem", s.initMemCb)
-
 	s.setupOnImgLoadCb()
 	js.Global().Set("loadImage", s.onImgLoadCb)
 
@@ -88,10 +84,10 @@ func (s *Shimmer) updateImage(img *image.RGBA, start time.Time) {
 		return
 	}
 
-	out := s.outBuf.Bytes()
-	hdr := (*reflect.SliceHeader)(unsafe.Pointer(&out))
-	ptr := uintptr(unsafe.Pointer(hdr.Data))
-	js.Global().Call("displayImage", ptr, len(out))
+	dst := js.Global().Get("Uint8Array").New(len(s.outBuf.Bytes()))
+	n := js.CopyBytesToJS(dst, s.outBuf.Bytes())
+	s.console.Call("log", "bytes copied:", strconv.Itoa(n))
+	js.Global().Call("displayImage", dst)
 	s.console.Call("log", "time taken:", time.Now().Sub(start).String())
 	s.outBuf.Reset()
 }

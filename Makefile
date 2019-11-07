@@ -1,5 +1,4 @@
 BINARY='shimmer.wasm'
-
 all: build
 
 build:
