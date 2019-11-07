@@ -59,19 +59,10 @@
 			await go.run(inst);
 		}
 
-		// gotMem sets the webassembly linear memory with the image buffer result
-		// at the slice header pointer passed from Go.
-		function gotMem(pointer) {
-			memoryBytes.set(bytes, pointer);
-			// Now the image can be loaded from the slice.
-			loadImage();
-		}
-
 		// displayImage takes the pointer to the target image in the wasm linear memory
 		// and its length. Gets the resulting byte slice and creates an image blob.
-		function displayImage(pointer, length) {
-			let resultBytes = memoryBytes.slice(pointer, pointer + length);
-			let blob = new Blob([resultBytes], {'type': imageType});
+		function displayImage(buf) {
+			let blob = new Blob([buf], {'type': imageType});
 			document.getElementById('targetImg').src = URL.createObjectURL(blob);
 		}
 
@@ -79,7 +70,7 @@
 			let reader = new FileReader();
 			reader.onload = (ev) => {
 				bytes = new Uint8Array(ev.target.result);
-				initMem(bytes.length);
+				loadImage(bytes);
 				let blob = new Blob([bytes], {'type': imageType});
 				document.getElementById("sourceImg").src = URL.createObjectURL(blob);
 			};
